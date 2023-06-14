@@ -210,15 +210,14 @@ deleteJob.action('cancel', (ctx) => {
 deleteJob.action(/.*/, async (ctx) => {
   // Get the record ID from the callback data
   const recordId = ctx.callbackQuery.data;
-
   // Delete the record from Airtable
-  base(process.env.BASE_NAME).destroy(recordId, (err, deletedRecord) => {
+  base(process.env.BASE_NAME).destroy(recordId, (err) => {
     if (err) {
       logger.error(err);
       return;
     }
     ctx.reply(
-      `Job ${deletedRecord.get('Company')} has been successfully deleted.`,
+      'Job has been successfully deleted.',
     );
     ctx.scene.leave();
   });
