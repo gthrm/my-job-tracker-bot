@@ -1,0 +1,30 @@
+{
+  "name": "my-job-tracker-bot",
+  "version": "1.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "node --inspect index.js",
+    "start": "node index.js"
+  },
+  "author": "cdROma",
+  "license": "ISC",
+  "dependencies": {
+    "airtable": "^0.12.1",
+    "cors": "2.8.5",
+    "date-fns": "^2.30.0",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-rate-limit": "^5.3.0",
+    "helmet": "^4.6.0",
+    "log-timestamp": "^0.3.0",
+    "telegraf": "^4.4.0",
+    "uuid": "^8.3.2",
+    "winston": "^3.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0 || ^8.2.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.2"
+  }
+}
