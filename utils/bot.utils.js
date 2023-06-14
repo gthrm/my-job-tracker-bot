@@ -53,10 +53,10 @@ updateStatus.enter(async (ctx) => {
   }).firstPage(); // Get all records
 
   // Create a keyboard with a button for each record
-  const keyboard = Markup.inlineKeyboard(records.map((record) => Markup.button.callback(
+  const keyboard = Markup.inlineKeyboard(records.map((record) => [Markup.button.callback(
     record.get('Company'),
     record.id,
-  )));
+  )]));
 
   await ctx.reply('Please select a job:', keyboard);
 });
@@ -148,10 +148,10 @@ getInfo.enter(async (ctx) => {
   }).firstPage(); // Get all records
 
   // Create a keyboard with a button for each record
-  const keyboard = Markup.inlineKeyboard(records.map((record) => Markup.button.callback(
+  const keyboard = Markup.inlineKeyboard(records.map((record) => [Markup.button.callback(
     record.get('Company'),
     record.id,
-  )));
+  )]));
 
   await ctx.reply('Please select a job:', keyboard);
 });
@@ -181,10 +181,10 @@ deleteJob.enter(async (ctx) => {
   }).firstPage(); // Get all records
 
   // Create a keyboard with a button for each record
-  const keyboard = Markup.inlineKeyboard(records.map((record) => Markup.button.callback(
+  const keyboard = Markup.inlineKeyboard(records.map((record) => [Markup.button.callback(
     record.get('Company'),
     record.id,
-  )));
+  )]));
 
   await ctx.reply('Please select a job to delete:', keyboard);
 });
