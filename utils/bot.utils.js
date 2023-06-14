@@ -76,6 +76,11 @@ updateStatus.enter(async (ctx) => {
   await ctx.reply('Please select a job:', keyboard);
 });
 
+updateStatus.action('cancel', (ctx) => {
+  ctx.reply('Operation cancelled');
+  ctx.scene.leave();
+});
+
 updateStatus.action(/.*/, async (ctx) => {
   // Get the record ID from the callback data
   ctx.scene.session.recordId = ctx.callbackQuery.data;
@@ -105,11 +110,6 @@ updateStatus.command('empty', (ctx) => {
       ctx.scene.leave();
     },
   );
-});
-
-updateStatus.action('cancel', (ctx) => {
-  ctx.reply('Operation cancelled');
-  ctx.scene.leave();
 });
 
 updateStatus.on('text', (ctx) => {
@@ -174,8 +174,7 @@ getInfo.action(/.*/, async (ctx) => {
     ctx.reply(
       `Company: ${record.get('Company')}\nJob link: ${record.get(
         'Job link',
-      )}\nStatus: ${record.get('Status')}\nStatus Update: ${
-        record.get('Status Update') || '-'
+      )}\nStatus: ${record.get('Status')}\nStatus Update: ${record.get('Status Update') || '-'
       }\nCreated at: ${getPrettyDate(
         record.get('Created At'),
       )}\nUpdated At: ${getPrettyDate(record.get('Updated At'))}`,
