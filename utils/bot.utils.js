@@ -173,7 +173,38 @@ getInfo.action(/.*/, async (ctx) => {
   ctx.scene.leave();
 });
 
-const stage = new Scenes.Stage([addJob, updateStatus, getInfo]);
+const deleteJob = new Scenes.BaseScene('deleteJob');
+
+deleteJob.enter(async (ctx) => {
+  const records = await base(process.env.BASE_NAME).select({
+    filterByFormula: `{User ID} = '${String(ctx.from.id)}'`,
+  }).firstPage(); // Get all records
+
+  // Create a keyboard with a button for each record
+  const keyboard = Markup.inlineKeyboard(records.map((record) => Markup.button.callback(
+    record.get('Company'),
+    record.id,
+  )));
+
+  await ctx.reply('Please select a job to delete:', keyboard);
+});
+
+deleteJob.action(/.*/, async (ctx) => {
+  // Get the record ID from the callback data
+  const recordId = ctx.callbackQuery.data;
+
+  // Delete the record from Airtable
+  base(process.env.BASE_NAME).destroy(recordId, (err, deletedRecord) => {
+    if (err) {
+      logger.error(err);
+      return;
+    }
+    ctx.reply(`Job ${deletedRecord.get('Company')} has been successfully deleted.`);
+    ctx.scene.leave();
+  });
+});
+
+const stage = new Scenes.Stage([addJob, updateStatus, getInfo, deleteJob]);
 
 bot.use(session());
 bot.use(stage.middleware());
@@ -184,12 +215,13 @@ bot.telegram.setMyCommands([
   { command: '/addjob', description: 'Add a new job application' },
   { command: '/update_status', description: 'Update status of a job application' },
   { command: '/get_info', description: 'Get information of a job application' },
-
+  { command: '/delete_job', description: 'Delete a job application' },
 ]);
 
 bot.command('addjob', (ctx) => ctx.scene.enter('addJob'));
 bot.command('update_status', (ctx) => ctx.scene.enter('updateStatus'));
 bot.command('get_info', (ctx) => ctx.scene.enter('getInfo'));
+bot.command('delete_job', (ctx) => ctx.scene.enter('deleteJob'));
 
 bot.catch((err, ctx) => {
   logger.error(`Ooops, encountered an error for ${ctx.updateType}`, err);
