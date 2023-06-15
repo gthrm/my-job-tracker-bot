@@ -12,9 +12,16 @@ const createInlineKeyboard = (records) => {
   const cancelButton = { id: 'cancel', label: 'Cancel' };
   const updatedRecords = [...records, cancelButton];
   return Markup.inlineKeyboard(
-    updatedRecords.map((record) => [
-      Markup.button.callback(record.id === cancelButton.id ? cancelButton.label : record.get('Company'), record.id),
-    ]),
+    updatedRecords.map((record) => {
+      // eslint-disable-next-line no-nested-ternary
+      const label = record.id === cancelButton.id
+        ? cancelButton.label
+        : record.get('Status') === 'Rejected'
+          ? `❌ ${record.get('Company')}` : record.get('Company');
+      return [
+        Markup.button.callback(label, record.id),
+      ];
+    }),
   );
 };
 
