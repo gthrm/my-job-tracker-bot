@@ -7,5 +7,11 @@ const statusesObj = {
   ON_HOLD: 'On Hold',
   REJECTED: 'Rejected',
 };
+const userStatuses = {
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  PENDING: 'Pending',
+};
 const statuses = Object.values(statusesObj);
-module.exports = { statuses, statusesObj };
+
+module.exports = { statuses, statusesObj, userStatuses };

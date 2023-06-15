@@ -3,10 +3,44 @@ const {
 } = require('telegraf');
 const { base } = require('./airtable.utils');
 const { logger } = require('./logger.utils');
-const { statuses, statusesObj } = require('../const/statuses.cont');
+const { statuses, statusesObj, userStatuses } = require('../const/statuses.cont');
 const { getPrettyDate } = require('./time.utils');
 
 require('dotenv').config();
+
+const bot = new Telegraf(process.env.BOT_TOKEN);
+
+const checkUser = async (userId, userName) => {
+  // Check if the user exists
+  const userRecords = await base(process.env.USERS_BASE_NAME)
+    .select({
+      filterByFormula: `{ID} = '${String(userId)}'`,
+    })
+    .firstPage() || [];
+
+  // If the user does not exist, create a new one
+  if (userRecords.length === 0) {
+    await base(process.env.USERS_BASE_NAME).create([
+      {
+        fields: {
+          ID: String(userId),
+          Username: userName,
+          Status: userStatuses.PENDING,
+        },
+      },
+    ]);
+
+    // Send a message to the channel for approval
+    await bot.telegram.sendMessage(
+      process.env.CHANNEL_ID,
+      `New user: @${userName}. Click to approve or reject.`,
+      Markup.inlineKeyboard([
+        Markup.button.callback('Approve', `approve:${userId}`),
+        Markup.button.callback('Reject', `reject:${userId}`),
+      ]),
+    );
+  }
+};
 
 const createInlineKeyboard = (records) => {
   const cancelButton = { id: 'cancel', label: 'Cancel' };
@@ -25,15 +59,86 @@ const createInlineKeyboard = (records) => {
   );
 };
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+async function handleUserApproval(userId, approvalStatus, ctx) {
+  const userRecords = await base(process.env.USERS_BASE_NAME)
+    .select({
+      filterByFormula: `{ID} = '${String(userId)}'`,
+    })
+    .firstPage();
 
-bot.start((ctx) => ctx.reply(
-  'Welcome to Job Tracker Bot! To add a new job for tracking, type /addjob.',
-));
+  if (userRecords.length === 0) {
+    ctx.reply('Error: User not found.');
+    return;
+  }
+
+  const userRecord = userRecords[0];
+
+  await base(process.env.USERS_BASE_NAME).update([
+    {
+      id: userRecord.id,
+      fields: {
+        Status: approvalStatus,
+      },
+    },
+  ]);
+
+  let message;
+  if (approvalStatus === userStatuses.APPROVED) {
+    message = 'Your request was approved. You can now use the bot.';
+  } else {
+    message = 'Your request was rejected. You cannot use the bot.';
+  }
+
+  await bot.telegram.sendMessage(userId, message);
+  let statusMessage;
+  if (approvalStatus === userStatuses.APPROVED) {
+    statusMessage = `User @${userId} was approved.`;
+  } else {
+    statusMessage = `User @${userId} was rejected.`;
+  }
+
+  await bot.telegram.sendMessage(process.env.CHANNEL_ID, statusMessage);
+}
+
+bot.start(async (ctx) => {
+  ctx.reply(
+    'Welcome to Job Tracker Bot! To add a new job for tracking, type /addjob.',
+  );
+});
+
+bot.use(async (ctx, next) => {
+  const userId = String(ctx.from.id);
+  const isAdmin = userId === process.env.ADMIN_ID;
+  const userRecords = await base(process.env.USERS_BASE_NAME)
+    .select({
+      filterByFormula: `{ID} = '${userId}'`,
+    })
+    .firstPage();
+
+  if (isAdmin || (userRecords?.length > 0 && userRecords[0].fields.Status === userStatuses.APPROVED)) {
+    await next();
+  } else {
+    await checkUser(ctx.from.id, ctx.from.username);
+    ctx.reply('Your request is still pending. Please wait until your request is approved before using the bot.');
+  }
+});
+
 bot.help((ctx) => ctx.reply(
   'Welcome to Job Tracker Bot! To add a new job for tracking, type /addjob.',
 ));
 bot.on('sticker', (ctx) => ctx.reply('👍'));
+
+bot.action(/approve:(.+)/, (ctx) => {
+  // Extract the user ID from the callback data
+  const userId = String(ctx.match[1]);
+  return handleUserApproval(userId, userStatuses.APPROVED, ctx);
+});
+
+bot.action(/reject:(.+)/, (ctx) => {
+  // Extract the user ID from the callback data
+  const userId = String(ctx.match[1]);
+  return handleUserApproval(userId, userStatuses.APPROVED, ctx);
+});
 
 // addJob
 const addJob = new Scenes.BaseScene('addJob');
