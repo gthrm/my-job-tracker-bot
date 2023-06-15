@@ -10,14 +10,14 @@ require('dotenv').config();
 
 const createInlineKeyboard = (records) => {
   const cancelButton = { id: 'cancel', label: 'Cancel' };
-  const updatedRecords = [...records, cancelButton];
+  const sortedRecord = records.sort((record1, record2) => new Date(record2.fields['Updated At']) - new Date(record1.fields['Updated At']));
+  const updatedRecords = [...sortedRecord, cancelButton];
   return Markup.inlineKeyboard(
     updatedRecords.map((record) => {
-      // eslint-disable-next-line no-nested-ternary
-      const label = record.id === cancelButton.id
-        ? cancelButton.label
-        : record.get('Status') === 'Rejected'
-          ? `❌ ${record.get('Company')}` : record.get('Company');
+      const companyName = record.id === cancelButton.id ? cancelButton.label : record.get('Company');
+      const status = record.id === cancelButton.id ? null : record.get('Status');
+      const label = status === statusesObj.REJECTED
+        ? `❌ ${companyName}` : companyName;
       return [
         Markup.button.callback(label, record.id),
       ];
