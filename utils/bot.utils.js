@@ -112,7 +112,7 @@ bot.use((ctx, next) => {
   if (isAdmin) {
     return next();
   }
-  return null;
+  return ctx.reply('MaintenanceBot undergoing updates. Temporary interruptions possible. We appreciate your patience. Thank you!');
   // const userRecords = await base(process.env.USERS_BASE_NAME)
   // .select({
   //   filterByFormula: `{ID} = '${userId}'`,
