@@ -106,21 +106,25 @@ bot.start((ctx) => {
   );
 });
 
-bot.use(async (ctx, next) => {
+bot.use((ctx, next) => {
   const userId = String(ctx.from.id);
   const isAdmin = userId === process.env.ADMIN_ID;
-  const userRecords = await base(process.env.USERS_BASE_NAME)
-    .select({
-      filterByFormula: `{ID} = '${userId}'`,
-    })
-    .firstPage();
-
-  if (isAdmin || (userRecords?.length > 0 && userRecords[0].fields.Status === userStatuses.APPROVED)) {
-    await next();
-  } else {
-    await checkUser(ctx.from.id, ctx.from.username);
-    ctx.reply('Your request is still pending. Please wait until your request is approved before using the bot.');
+  if (isAdmin) {
+    return next();
   }
+  return null;
+  // const userRecords = await base(process.env.USERS_BASE_NAME)
+  // .select({
+  //   filterByFormula: `{ID} = '${userId}'`,
+  // })
+  // .firstPage();
+
+  // if (isAdmin || (userRecords?.length > 0 && userRecords[0].fields.Status === userStatuses.APPROVED)) {
+  //   await next();
+  // } else {
+  //   await checkUser(ctx.from.id, ctx.from.username);
+  //   ctx.reply('Your request is still pending. Please wait until your request is approved before using the bot.');
+  // }
 });
 
 bot.help((ctx) => ctx.reply(
