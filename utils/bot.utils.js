@@ -100,7 +100,7 @@ async function handleUserApproval(userId, approvalStatus, ctx) {
   await bot.telegram.sendMessage(process.env.CHANNEL_ID, statusMessage);
 }
 
-bot.start(async (ctx) => {
+bot.start((ctx) => {
   ctx.reply(
     'Welcome to Job Tracker Bot! To add a new job for tracking, type /addjob.',
   );

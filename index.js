@@ -16,11 +16,13 @@ http.createServer(app).listen(process.env.SERVER_PORT, () => {
   );
   try {
     bot.launch();
+    logger.info('Bot launched');
   } catch (error) {
     logger.error(new Error(error));
     bot.telegram.sendMessage(
       process.env.CHANNEL_ID,
       `An exception occurred: ${error.message}`,
     );
+    bot.stop();
   }
 });
